@@ -1,0 +1,19 @@
+external:
+  innate:
+    source:
+      type: git
+      addr: https://github.com/Ramaze/innate.git
+    branch: master
+    version: f133be73d1561c2c441496d1e5feb4a0af564ea6
+  #ramaze:
+  #  source:
+  #    type: git
+  #    addr: https://github.com/Ramaze/ramaze.git
+  #  branch: master
+  #  version: edabd3c9a476854b72fe2caaa60b25d6c6e60aff
+  falcon: 
+    source: 
+      type: git
+      addr: http://git.falconpl.org/falcon.git
+      branch: new_engine
+    version: c4e6516a8c02f5e67a94cbc761faa74e99ef9aa0

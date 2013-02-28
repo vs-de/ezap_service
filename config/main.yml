@@ -1,0 +1,17 @@
+---
+global_master_service:
+  sockets:
+    pub:
+      name_space: ctrl
+      addr: 'tcp://127.0.0.1:43690'
+    rep:
+      addr: &gm_address 'tcp://127.0.0.1:43691'
+  opts:
+    sub_port_range: 
+      start: 52001
+      end: 53000
+    cache_storage:
+      type: redis #memcache, whatever?
+      addr: 'locahost'
+
+global_master_address: *gm_address

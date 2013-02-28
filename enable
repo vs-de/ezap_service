@@ -1,0 +1,4 @@
+EZAP_ROOT=`pwd`
+PATH="$EZAP_ROOT"/bin:"$PATH"
+export EZAP_ROOT PATH
+alias zap='ezap eval'
