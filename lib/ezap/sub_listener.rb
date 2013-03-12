@@ -34,7 +34,7 @@ class Ezap::SubscriptionListener
       while true do
         raw_event = sock.recv
         print "thread received obj: "
-        obj = MessagePack.load(raw_event[(scope.size..-1)])
+        obj = MessagePack.load(raw_event[(raw_event.index('|')..-1)])
         puts obj.inspect
         break if obj == ['quit']
         #eh = EventHandler.new(obj)
@@ -56,6 +56,10 @@ class Ezap::SubscriptionListener
 
   def stop
     #@sock.close
+  end
+
+  def wait
+    @threads.each(&:wait)
   end
 
   class EventHandler

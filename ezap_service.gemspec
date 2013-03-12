@@ -16,8 +16,5 @@ Gem::Specification.new do |gem|
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
-  gem.add_dependency('redis', '~> 3.0.2')
-  gem.add_dependency('ffi-rzmq', '~> 1.0.0')
-  gem.add_dependency('msgpack', '~> 0.5.3')
-
+  gem.add_dependency('ezap_core')
 end

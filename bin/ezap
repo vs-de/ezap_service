@@ -1,5 +1,5 @@
 #!/bin/bash
-INIT_FILE="$EZAP_ROOT/lib/init_file.rb"
+INIT_FILE="$EZAP_ROOT/lib/loader.rb"
 
 ezap_eval() { 
   ruby -r"$INIT_FILE" <<< "$@"

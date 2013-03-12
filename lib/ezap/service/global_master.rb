@@ -5,14 +5,14 @@
 # Before changing or using this code, you have to accept the Ezap License in the Ezap_LICENSE.txt file 
 # included in the package or repository received by obtaining this file.
 #####
-class Ezap::Service::GlobalMaster < Ezap::Service::Master
-  include Ezap::GlobalMasterConnection
 
-  PUB_CHANNELS = Hash.new{|h,k|"/gms/#{k}"}.merge({}
+class Ezap::Service::GlobalMaster < Ezap::Service::Master
+
+  #PUB_CHANNELS = Hash.new{|h,k|"/gms/#{k}"}.merge({}
     #main: '/gms/main/'
     #debug: 'gms/log/debug'
     #oob: = '/oob/'
-  )
+  #)
 
   def initialize
     raise "global master cannot have an instance!"
@@ -44,6 +44,7 @@ class Ezap::Service::GlobalMaster < Ezap::Service::Master
   
   module ClassMethods
     include Ezap::WrappedZeroExtension
+    include Ezap::GlobalMasterConnection
 
     def daemonize
       raise "Error: pidfile already exists!" if File.exists?(PID_FILE)
@@ -110,21 +111,22 @@ class Ezap::Service::GlobalMaster < Ezap::Service::Master
 
     #sends to running instance
     #TODO:
-    #crude hack, undry
-    #see service gm_request
     #maybe should all be initialized when class is used, see start
     def shutdown
-      sock = make_socket(:req)
-      sock.connect(Ezap.config.global_master_address)
-      sock.send(MessagePack.pack([:shutdown]))
-      puts "stop asw: #{MessagePack.unpack(sock.recv)} "
-      sock.close
+      asw = gm_request :shutdown
+      puts "stop asw: #{asw} "
     end
 
-    def send_public channel, obj
-      chan = PUB_CHANNELS[channel]
-      puts "GM: send pub: #{chan}"
-      @pub.send(chan+MessagePack.pack(obj))
+    #TODO: this is a bit unclear
+    #def send_public channel, obj
+    #  chan = PUB_CHANNELS[channel]
+    #  puts "GM: send pub: #{chan}"
+    #  @pub.send(chan+MessagePack.pack(obj))
+    #end
+
+    def publish chan, cmd, *args
+      puts "PUB send: #{chan}|#{cmd} #{args.inspect}"
+      @pub.send(chan+'|'+MessagePack.pack([cmd]+args))
     end
 
     def shutdown_system
@@ -205,12 +207,21 @@ class Ezap::Service::GlobalMaster < Ezap::Service::Master
         rs = GM.services[name]
         return {reply: {}} unless rs
         {reply: {address: rs.address}}
-        
       end
 
-      def send_public obj
-        GM.send_public("services", obj)
-        {reply: 'ack'}
+      def gm_pub_addr
+        {reply: {address: GM.get_addr_of(:pub)}}
+      end
+      
+      #TODO: see GM.send_public
+      #def send_public obj
+      #  GM.send_public("services", obj)
+      #  {reply: 'ack'}
+      #end
+
+      def publish chan, *args
+        GM.publish chan, *args
+        {reply: :ack}
       end
     end
     extend Commands
