@@ -1,1 +1,1 @@
-rvm --create --install ruby-1.9.3@ezap_service
+rvm --create --install ruby-2.0.0@ezap_service

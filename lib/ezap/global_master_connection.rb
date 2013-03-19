@@ -34,5 +34,10 @@ module Ezap
       sock.close
       asw
     end
+
+    def check_gm_connection
+      poll = ZMQ::Poller.new
+      
+    end
   end
 end
