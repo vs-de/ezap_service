@@ -3,8 +3,9 @@
 # This File is part of Ezap.
 # It is shared to be part of wecuddle from Lailos Group GmbH, Leipzig.
 # Before changing or using this code, you have to accept the Ezap License in the Ezap_LICENSE.txt file 
-# included in the package or repository received by obtaining this file.
+# included in the package or repository received by obtaining this file
 #####
+
 class Ezap::Service::Base
   include Ezap::Base
   include Ezap::GlobalMasterConnection
@@ -217,6 +218,10 @@ STATUS
     
     def _adp_sign_off adp_id
       @service._remove_adapter adp_id
+      {reply: :ack}
+    end
+
+    def ping
       {reply: :ack}
     end
     
