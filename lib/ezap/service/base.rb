@@ -113,7 +113,7 @@ class Ezap::Service::Base
     req = @loop_sock.recv_obj
     disp = _dispatch_request(req)
     print "sending...";$stdout.flush
-    @loop_sock.send_obj(disp[:reply] || disp)
+    @loop_sock.send_obj(disp.has_key?(:reply) ? disp[:reply] : disp)
     puts "sent"
     hook = disp[:after_response]
     hook && send(hook)
@@ -123,7 +123,7 @@ class Ezap::Service::Base
     return {error: "wrong request data format"} unless req.is_a?(Array)
     cmd = req.shift
     print "recvd cmd:#{cmd}|"
-    raise 'initializer is forbidden' if cmd == 'initializer'
+    raise 'initializer is forbidden' if cmd == 'initialize'
     #TODO: we ignore the adapter-id here for now
     if cmd.start_with?('adp_')
       @dispatcher.send(cmd.sub(/^adp_/,''), *(req[(1..-1)]))
@@ -131,6 +131,8 @@ class Ezap::Service::Base
       @dispatcher.send(cmd, *req)
     end
   rescue Exception => e
+    puts "Exception: #{e.message}"
+    puts e.backtrace.join("\n")
     {error: e.message}
   end
 
@@ -197,7 +199,7 @@ STATUS
     end
 
     def initialize *args
-
+      
     end
 
     #def self.create service, *args
@@ -230,6 +232,11 @@ STATUS
       puts "adding model..."
       oid = @service._add_service_object(m)
       {reply: oid}
+    end
+
+    def _eval str
+      obj = eval(str)
+      {reply: obj.respond_to?(:to_msgpack) ? obj : obj.inspect}
     end
 
     def _adp_model_send model_class, id, cmd, *arg
