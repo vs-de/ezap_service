@@ -12,7 +12,7 @@ class Ezap::Service::Base
   include Ezap::WrappedZeroExtension
   #include Ezap::SubscriptionListener
   
-  @sockets = []
+  @sockets ||= []
   #@child_classes = []
 
   class << self
@@ -23,7 +23,7 @@ class Ezap::Service::Base
   # adapter_ids might be utilized for ezap_guids in combination with object_id
   attr_reader :properties, :adapters
 
-  #TODO: remove this after test-phase
+  #(TODO: remove this after test-phase?)
   @remote_tree = {}
   
   def self.inherited base
@@ -39,6 +39,7 @@ class Ezap::Service::Base
   def service_init! name=nil
     name ||= self.class.to_s.to_sym
     #TODO: must be from yml
+    #TODO: maybe it can be received over gm-connection as default
     @properties = {host: '127.0.0.1'}
     #cfg = Ezap.config[name] || {}
     @properties.merge!(name: name)
