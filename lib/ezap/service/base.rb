@@ -6,7 +6,7 @@
 # included in the package or repository received by obtaining this file
 #####
 
-class Ezap::Service::Base
+module Ezap::Service::Base
   include Ezap::Base
   include Ezap::GlobalMasterConnection
   include Ezap::WrappedZeroExtension
