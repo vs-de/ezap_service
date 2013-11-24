@@ -1,9 +1,11 @@
 #####
-# Copyright 2013, Valentin Schulte, Leipzig
-# This File is part of Ezap.
-# It is shared to be part of wecuddle from Lailos Group GmbH, Leipzig.
-# Before changing or using this code, you have to accept the Ezap License in the Ezap_LICENSE.txt file 
-# included in the package or repository received by obtaining this file
+# Copyright 2013, Valentin Schulte, Leipzig, Germany
+# This file is part of Ezap.
+# Ezap is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 3 
+# as published by the Free Software Foundation.
+# You should have received a copy of the GNU General Public License
+# in the file COPYING along with Ezap. If not, see <http://www.gnu.org/licenses/>.
 #####
 
 module Ezap::Service::Base
