@@ -17,18 +17,29 @@ module Ezap::Service::Base
 
   class << self
     #attr_reader :child_classes, :remote_tree
-    attr_reader :remote_tree
+    attr_reader :ezap_remote_tree
   end
 
   # adapter_ids might be utilized for ezap_guids in combination with object_id
   attr_reader :properties, :adapters
 
   #(TODO: remove this after test-phase?)
-  @remote_tree = {}
-  
-  def self.inherited base
-    #@child_classes << base
-    base.instance_variable_set('@remote_tree', {})
+  @ezap_remote_tree = {}
+
+  @@container_list = []
+
+  def self.included base
+    base.instance_variable_set('@ezap_remote_tree', {})
+    class << base
+      attr_reader :ezap_remote_tree
+    end
+    @@container_list << base
+    @@container_list.uniq!
+    base.extend ExportCM
+  end
+
+  def self.container_list
+    @@container_list
   end
   
   def initialize
@@ -137,21 +148,23 @@ module Ezap::Service::Base
     {error: e.message}
   end
 
-  def self._add_service_object_class klass
-    @remote_tree.merge!(
-      klass.top_class_name => {class: klass, models: {}} #models -> instances
-    )
+  module ExportCM
+    def _add_service_object_class klass
+      @ezap_remote_tree.merge!(
+        klass.top_class_name => {class: klass, models: {}} #models -> instances
+      )
+    end
   end
 
   def _add_service_object o
-    hsh = self.class.remote_tree[o.class.top_class_name][:models]
+    hsh = self.class.ezap_remote_tree[o.class.top_class_name][:models]
     new_key = hsh.keys.max.to_i+1
     hsh[new_key] = o
     new_key
   end
 
   def _remove_service_object i
-    hsh = self.class.remote_tree[o.class.top_class_name][:models]
+    hsh = self.class.ezap_remote_tree[o.class.top_class_name][:models]
     hsh.delete(i)
   end
 
@@ -164,7 +177,7 @@ module Ezap::Service::Base
   end
 
   def object_hash
-    self.class.remote_tree
+    self.class.ezap_remote_tree
   end
 
   def detailed_status
@@ -173,7 +186,7 @@ module Ezap::Service::Base
 ----adapters:
     #{adapters.inspect} 
 ----known service classes:
-    #{Ezap::Service::Base.subclasses.inspect}
+    #{Ezap::Service::Base.container_list.inspect}
 ----service_objects:
     #{object_hash.inspect}
 STATUS
@@ -192,7 +205,7 @@ STATUS
 
   class ServiceObject
     def self.inherited base
-      service_class = Ezap::Service::Base.subclasses.find do |klass|
+      service_class = Ezap::Service::Base.container_list.find do |klass|
         base.to_s.split('::').reverse.any?{|p|klass.to_s.split('::').reverse.include?(p)}
       end
       raise "error: No service-class found in any parent module of #{base}" unless service_class
