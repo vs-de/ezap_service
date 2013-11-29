@@ -198,6 +198,13 @@ STATUS
     {m_id: self._add_service_object(_class.new(*args)), args: args}
   end
 
+  #TODO: define model not found exception
+  def get_model _class, id
+    model = object_hash[_class][:models][id] rescue nil
+    return model if model
+    raise "model requested could not be found [class#id]: [#{_class.inspect}##{id.inspect}]"
+  end
+
   def model_list_creation_reply _class, args_list
     args_list.inject([]) do |arr,args|
       args = [args].flatten
@@ -230,6 +237,15 @@ STATUS
       @service = srv
     end
 
+    def ping
+      {reply: :ack}
+    end
+    
+    def stop
+      #@service.stop
+      {reply: :ack, after_response: :stop}
+    end
+
     def _adp_sign_on
       {reply: @service._add_adapter}
     end
@@ -239,10 +255,6 @@ STATUS
       {reply: :ack}
     end
 
-    def ping
-      {reply: :ack}
-    end
-    
     def _adp_model_init adp_id, model_class, *args
       m = @service.object_hash[model_class][:class].new
       puts "adding model..."
@@ -255,19 +267,14 @@ STATUS
       {reply: obj.respond_to?(:to_msgpack) ? obj : obj.inspect}
     end
 
-    def _adp_model_send model_class, id, cmd, *arg
-      @service.get_model(model_class, id).send(cmd, *args)
+    def _adp_model_send adp_id, model_class, id, cmd, *args
+      {reply: @service.get_model(model_class, id).send(cmd, *args)}
     end
 
     def _detailed_status
       {reply: @service.detailed_status}
     end
     
-    def stop
-      #@service.stop
-      {reply: :ack, after_response: :stop}
-    end
-
   end
 
   class Dispatcher < CoreDispatcher
