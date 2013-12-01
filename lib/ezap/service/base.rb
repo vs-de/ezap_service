@@ -14,6 +14,7 @@ module Ezap::Service::Base
   include Ezap::WrappedZeroExtension
   #include Ezap::SubscriptionListener
   
+  DEFAULT_CONFIG_FILE = 'ezap_service.yml'
   @sockets ||= []
   #@child_classes = []
 
@@ -38,6 +39,14 @@ module Ezap::Service::Base
     @@container_list << base
     @@container_list.uniq!
     base.extend ExportCM
+
+    ## app cfg
+    base.send(:include, Ezap::AppConfig)
+    base.default_app_config_name DEFAULT_CONFIG_FILE
+    unless base.infiltrate base, 2
+      puts "no #{DEFAULT_CONFIG_FILE} found, using auto/default settings"
+    end
+    ## app cfg
   end
 
   def self.container_list
@@ -53,17 +62,43 @@ module Ezap::Service::Base
     name ||= self.class.to_s.to_sym
     #TODO: must be from yml
     #TODO: maybe it can be received over gm-connection as default
-    @properties = {host: '127.0.0.1'}
+    @properties = self.class.app_config
+
+    unless @properties[:host]
+      host = auto_ip
+      puts "auto-using addr: #{host}"
+      @properties[:host] = host
+    end
+    build_loop_sock
     #cfg = Ezap.config[name] || {}
     @properties.merge!(name: name)
     @properties.merge!(sign_on!).symbolize_keys!
   end
 
+  def gm_ip
+    Ezap.config.global_master_address.match(/:\/\/(.*):.*/)[1]
+  end
+
+  def auto_ip
+    port = gm_request(:auto_ip)
+    s = TCPSocket.new(gm_ip, port)
+    ip = s.read
+  end
+
+  def build_loop_sock
+    @loop_sock = make_socket(:rep)
+    @loop_sock.bind("tcp://#{@properties[:host]}:0")
+    addr = ''
+    @loop_sock.getsockopt(ZMQ::LAST_ENDPOINT, addr)
+    addr[-1] = '' if addr[-1] == "\u0000"
+    @properties[:address] = addr
+  end
+
   def sign_on!
     asw = gm_request(:svc_reg, @properties).symbolize_keys!
-    unless asw[:address]
-      raise "requested address - received #{asw}"
-    end
+    #unless asw[:address]
+    #  raise "requested address - received #{asw}"
+    #end
     @properties.merge!(asw)
   end
   
@@ -95,8 +130,6 @@ module Ezap::Service::Base
   end
 
   def _prepare_loop
-    @loop_sock = make_socket(:rep)
-    @loop_sock.bind(@properties[:address])
     puts "listen on #{@properties[:address]}"
     @dispatcher = self.class::Dispatcher.new(self)
   end
