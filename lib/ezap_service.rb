@@ -1,5 +1,7 @@
 require 'ezap_core'
 require 'ezap/service'
 require 'ezap/service/base'
+require 'ezap/service/service_object'
+require 'ezap/service/immediate'
 require 'ezap/service/master'
 require 'ezap/service/global_master'

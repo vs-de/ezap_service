@@ -6,9 +6,8 @@
 # included in the package or repository received by obtaining this file.
 #####
 module Ezap
-  puts "EZAP srv"
-  require 'service'
-  load_lib 'service', 'master'
-  load_lib_dir 'service'
+  #require 'service'
+  #load_lib 'service', 'master'
+  #load_lib_dir 'service'
   #load_lib 'web_controller'
 end
