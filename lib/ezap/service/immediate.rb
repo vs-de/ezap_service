@@ -17,8 +17,8 @@ module Ezap::Service::Immediate
     base.instance_eval do
       base.const_set('Dispatcher', Class.new(base.const_get('CoreDispatcher')))
       def self.method_added m
-        const_get('Dispatcher').send(:define_method, m) do
-          {reply: service.send(m)}
+        const_get('Dispatcher').send(:define_method, m) do |*args|
+          {reply: service.send(m, *args)}
         end
       end
     end
