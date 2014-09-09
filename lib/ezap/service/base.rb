@@ -72,6 +72,7 @@ module Ezap::Service::Base
     build_loop_sock
     #cfg = Ezap.config[name] || {}
     @properties.merge!(name: name)
+    @properties.merge!(remote_address: @properties[:remote_address]) if @properties[:remote_address]
     @properties.merge!(sign_on!).symbolize_keys!
   end
 
