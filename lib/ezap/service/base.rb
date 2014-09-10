@@ -63,6 +63,9 @@ module Ezap::Service::Base
     #TODO: must be from yml
     #TODO: maybe it can be received over gm-connection as default
     @properties = self.class.app_config
+    if p = @properties[name.to_sym]
+      @properties.merge!(p)
+    end
 
     unless host = @properties[:host]
       host = auto_ip
@@ -99,7 +102,7 @@ module Ezap::Service::Base
       @loop_sock.getsockopt(ZMQ::LAST_ENDPOINT, addr)
       addr[-1] = '' if addr[-1] == "\u0000"
       @properties[:address] = addr
-      port = addr.match(/:(.*)$/)[1]
+      port = addr.match(/([^:]*)$/)[1]
     else
       addr = "tcp://#{host}:#{port}"
       @loop_sock.bind(addr)
