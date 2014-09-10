@@ -43,7 +43,7 @@ module Ezap::Service::Base
     ## app cfg
     base.send(:include, Ezap::AppConfig)
     base.default_app_config_name DEFAULT_CONFIG_FILE
-    unless base.infiltrate base, 2
+    unless base.infiltrate base #, 6
       puts "no #{DEFAULT_CONFIG_FILE} found, using auto/default settings"
     end
     ## app cfg
@@ -64,15 +64,19 @@ module Ezap::Service::Base
     #TODO: maybe it can be received over gm-connection as default
     @properties = self.class.app_config
 
-    unless @properties[:host]
+    unless host = @properties[:host]
       host = auto_ip
       puts "auto-using addr: #{host}"
-      @properties[:host] = host
     end
-    build_loop_sock
+    @properties[:host] = host
+    if port = @properties[:port]
+      build_loop_sock port: port
+    else
+      build_loop_sock port: :auto
+    end
+
     #cfg = Ezap.config[name] || {}
     @properties.merge!(name: name)
-    @properties.merge!(remote_address: @properties[:remote_address]) if @properties[:remote_address]
     @properties.merge!(sign_on!).symbolize_keys!
   end
 
@@ -86,13 +90,25 @@ module Ezap::Service::Base
     ip = s.read
   end
 
-  def build_loop_sock
+  def build_loop_sock port: :auto
     @loop_sock = make_socket(:rep)
-    @loop_sock.bind("tcp://#{@properties[:host]}:0")
-    addr = ''
-    @loop_sock.getsockopt(ZMQ::LAST_ENDPOINT, addr)
-    addr[-1] = '' if addr[-1] == "\u0000"
-    @properties[:address] = addr
+    host = @properties[:host]
+    if port == :auto
+      @loop_sock.bind("tcp://#{host}:0")
+      addr = ''
+      @loop_sock.getsockopt(ZMQ::LAST_ENDPOINT, addr)
+      addr[-1] = '' if addr[-1] == "\u0000"
+      @properties[:address] = addr
+      port = addr.match(/:(.*)$/)[1]
+    else
+      addr = "tcp://#{host}:#{port}"
+      @loop_sock.bind(addr)
+      @properties[:address] = addr
+    end
+    if rh = @properties[:remote_host]
+      addr = "tcp://#{rh}:#{port}"
+      @properties[:remote_address] = addr
+    end
   end
 
   def sign_on!
