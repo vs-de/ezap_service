@@ -53,12 +53,12 @@ module Ezap::Service::Base
     @@container_list
   end
   
-  def initialize
+  def initialize **opts
     @adapters = []
-    service_init!
+    service_init! opts
   end
 
-  def service_init! name=nil
+  def service_init! name: nil
     name ||= self.class.to_s.to_sym
     #TODO: must be from yml
     #TODO: maybe it can be received over gm-connection as default
@@ -123,7 +123,7 @@ module Ezap::Service::Base
   end
   
   def sign_off!
-    asw = gm_request(:svc_unreg, self.class.to_s)
+    asw = gm_request(:svc_unreg, @properties[:name])
     raise "signed off - received #{asw}" unless asw == 'ack'
   end
 
